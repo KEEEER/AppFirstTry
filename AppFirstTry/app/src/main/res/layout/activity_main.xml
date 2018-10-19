@@ -5,6 +5,20 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="10dip" >
+	
+	<EditText
+      android:id="@+id/edittext1"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:ems="10"/>
+	  
+	 <EditText
+      android:id="@+id/edittext2"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:ems="10"/> 
+	
+	
     <TextView
 		android:id="@+id/text_view_id"
         android:layout_width="wrap_content"
