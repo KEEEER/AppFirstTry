@@ -1,5 +1,5 @@
 # AppFirstTry
 Try more!!
 
-practice how to set gradle
+practice setting gradle
 android project call java project
