@@ -20,7 +20,13 @@ import android.widget.Toast;
 import java.io.IOException;
 import android.widget.SeekBar;
 
+import java.io.File;
+import java.util.ArrayList;
+
 public class classTry extends AppCompatActivity {
+	private int timeInSecond; 
+	private String timeStack;
+	
 	private boolean playORpause = true;
 	private SeekBar seekbar;
 	private ListView listview;
@@ -45,10 +51,8 @@ public class classTry extends AppCompatActivity {
         bstop = (Button)findViewById(R.id.stop);
 		
 		seekbar = (SeekBar)findViewById(R.id.seek);
-		
-		
-		
-		adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,str);
+	
+		adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,findSongs("/storage/emulated/0/Download/"));
 		listview.setAdapter(adapter);
 		listview.setOnItemClickListener(onClickListView);
 		seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -77,10 +81,12 @@ public class classTry extends AppCompatActivity {
 		});*/
 	
     Runnable start=new Runnable(){
-
+	
         @Override
         public void run() {
-			textView.setText(String.valueOf(mp.getCurrentPosition()));
+			timeInSecond = mp.getCurrentPosition() / 1000;
+			timeStack = String.valueOf(timeInSecond / 60) + ":" + String.valueOf(timeInSecond % 60);
+			textView.setText(timeStack);
 			seekbar.setProgress(mp.getCurrentPosition());
             handler.postDelayed(start, 10);
 			if(!(mp.isPlaying())){
@@ -88,13 +94,31 @@ public class classTry extends AppCompatActivity {
 				bplay.setText("RePlay?");
 				playORpause = true;
 			}
-    //        handler.post(updatesb);
-            //用一个handler更新SeekBar
         }
-    	
+  	
     };
 
-	
+	ArrayList<String> findSongs(String rootPath) {
+		ArrayList<String> fileList = new ArrayList<>();
+			try{
+			   File rootFolder = new File(rootPath);
+			   File[] files = rootFolder.listFiles(); 
+			   for (File file : files) {
+				 if (file.isDirectory()) {
+					   if (findSongs(file.getAbsolutePath()) != null) {
+							fileList.addAll(findSongs(file.getAbsolutePath()));
+						} else {
+							break;
+						}
+				 } else if (file.getName().endsWith(".mp3")) {
+					 fileList.add(file.getAbsolutePath());
+				 }
+			}
+			return fileList;
+			}catch(Exception e){
+			   return null;
+			}
+	}
 	private AdapterView.OnItemClickListener onClickListView = new AdapterView.OnItemClickListener(){
         @Override
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
@@ -109,12 +133,10 @@ public class classTry extends AppCompatActivity {
 		}};
     public void onClick(View view){
 		String s = getResources().getResourceEntryName(view.getId());
-		textView.setText(s);
 		
 		switch(s){
 			case "set":
 				textView.setText("Button Set!");
-				//textView.setText(String.valueOf(seekbar.getMax()));
 				try {
 					mp.setDataSource("/storage/emulated/0/Download/try.mp3");
 					mp.prepare();
@@ -131,15 +153,12 @@ public class classTry extends AppCompatActivity {
 			case "play":
 				if(playORpause){
 					handler.post(start);
-					textView.setText("Button Play!");	
 					mp.start();
 					textView.setText(String.valueOf(mp. getCurrentPosition()));
 					playORpause = false;
 					bplay.setText("Pause!");
-				//	bplay.setText(String.valueOf(mp.getDuration()));
 				}
 				else{
-					textView.setText("Button Pause!");
 					if(mp != null){
 						mp.pause();
 						handler.removeCallbacks(start);
@@ -154,7 +173,7 @@ public class classTry extends AppCompatActivity {
 				
 				break;
 			case "stop":
-				textView.setText("Button Stop!");
+			//	textView.setText("Button Stop!");
 				if(mp != null){					
 					mp.pause();
 					mp.seekTo(0);
