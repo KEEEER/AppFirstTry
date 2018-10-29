@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 		Button button = findViewById(R.id.button_id);
 		button.setText("you are bad!");
 		//Intent intent = getPackageManager().getLaunchIntentForPackage("com.example.mylibrary.classTry");
-		Intent intent = new Intent("com.example.mylibrary.classTry");
-        startActivity(intent);
+	//	Intent intent = new Intent("com.example.mylibrary.classTry");
+     //   startActivity(intent);
 	}
 }

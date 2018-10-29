@@ -39,11 +39,11 @@ public class classTry extends AppCompatActivity {
 	private TextView textView;
 	private TextView songTextView;
 	private Button bplay,bstop;
-	Handler handler=new Handler();
+	private Handler handler=new Handler();
 	
     private MediaPlayer mp = new MediaPlayer();
 	
-	private ArrayList<String>  mp3_AL = new ArrayList<>();
+	private ArrayList<String>  mp3_AL = new ArrayList<String>(findSongs("/storage/emulated/0/Download/"));
 	private String strSource;
 	private String[] strOrg = {"新北市","台北市","台中市","台南市","高雄市"};
 	private String[] str = {"新北市","台北市","台中市","台南市","高雄市"};
@@ -58,10 +58,6 @@ public class classTry extends AppCompatActivity {
 		bplay = (Button)findViewById(R.id.play);
         bstop = (Button)findViewById(R.id.stop);		
 		seekbar = (SeekBar)findViewById(R.id.seek);
-		
-		textView.setText("Hello how RU?");	
-		
-		mp3_AL.assign(findSongs("/storage/emulated/0/Download/"));
 		
 		adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,mp3_AL);
 		listview.setAdapter(adapter);
@@ -127,8 +123,10 @@ public class classTry extends AppCompatActivity {
 	private AdapterView.OnItemClickListener onClickListView = new AdapterView.OnItemClickListener(){
         @Override
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-			textView.setText(mp3_AL[position]);
-			textView
+			
+			textView.setText(mp3_AL.get(position));
+			strSource = mp3_AL.get(position);
+			songTextView.setText(strSource);
 			listview.setAdapter(adapter);
 		}};
     public void onClick(View view){
@@ -138,7 +136,7 @@ public class classTry extends AppCompatActivity {
 			case "set":
 				textView.setText("Button Set!");
 				try {
-					mp.setDataSource("/storage/emulated/0/Download/try.mp3");
+					mp.setDataSource(strSource);
 					mp.prepare();
 					seekbar.setMax(mp.getDuration());
 					
