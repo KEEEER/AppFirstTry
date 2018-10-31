@@ -1,5 +1,7 @@
 package com.example.user.appexample;
 
+import com.example.user.appexample.CustomView;
+
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -25,8 +27,9 @@ public class MainActivity extends AppCompatActivity {
 		context=this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+		
     }
-	private void onClicks(View view){
-		Toast.makeText(context, "On click.", Toast.LENGTH_SHORT).show();
+	public void onClick(View view){
+		
 	}
 }
