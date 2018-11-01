@@ -5,10 +5,47 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="10dip" >
+    <Button 
+		android:text="set"
+		android:id="@+id/set"
+		android:onClick="onClick"
+        android:layout_width="wrap_content"
+		android:layout_height="wrap_content"/>  
+	<Button 
+		android:text="play"
+		android:id="@+id/play"
+		android:onClick="onClick"
+        android:layout_width="wrap_content"
+		android:layout_height="wrap_content"/>
     <Button
-        android:id="@+id/button_id"
-        android:text="No Click"
+		android:text="stop" 
+		android:id="@+id/stop"
+		android:onClick="onClick"
+        android:layout_width="wrap_content"
+		android:layout_height="wrap_content"/>
+	<SeekBar
+		android:id="@+id/seek"
+		android:layout_width="match_parent" 
+		android:layout_height="wrap_content" 
+		android:maxHeight="2dp" 
+		android:minHeight="2dp" 
+		android:paddingBottom="3dp" 
+		android:paddingLeft="12dp" 
+		android:max="0" 
+		android:paddingRight="12dp" 
+		android:paddingTop="3dp"/>
+
+	<TextView
+        android:id="@+id/textView"
         android:layout_height="wrap_content"
-		android:onClick="newView"
         android:layout_width="wrap_content"/>
+	<TextView
+        android:id="@+id/songTextView"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>
+	<ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/listview" />	
 </LinearLayout>

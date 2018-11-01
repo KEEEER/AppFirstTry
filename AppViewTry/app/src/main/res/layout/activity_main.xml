@@ -6,8 +6,8 @@
     android:id="@+id/RelativeLayout"    
     android:layout_width="match_parent"    
     android:layout_height="match_parent" 
-    tools:context=".MainActivity">
-
+	tools:context=".MainActivity">
+	<!--
 	<TextView
 		android:id="@+id/textView"
 		android:layout_width="wrap_content"
@@ -45,7 +45,16 @@
 	   app:eyesColor="@color/black"
 	   app:faceColor="@color/gray"
 	   app:mouthColor="@color/black"
-	   app:state="sad" />
+	   app:state="sad" /> 
+	   -->
 
-	
+	<com.example.user.appexample.MusicPlayerBackGroundView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/BackGroundTest"/>
+	<com.example.user.appexample.MusicPlayerPlayPauseView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/PlayPause"
+		android:onClick = "onClick"/>
 </RelativeLayout>

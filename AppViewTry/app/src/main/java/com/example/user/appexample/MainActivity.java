@@ -1,10 +1,11 @@
 package com.example.user.appexample;
 
-import com.example.user.appexample.CustomView;
-
+import com.example.user.appexample.*;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+
+import android.graphics.Color;
 
 import android.widget.Toast; 
 
@@ -22,14 +23,27 @@ import android.view.View.OnClickListener;
 
 public class MainActivity extends AppCompatActivity {
 	private Context context;
+	private MusicPlayerBackGroundView backGround;
+	private MusicPlayerPlayPauseView play;
+	int posX;
+	int posY;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 		context=this;
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+		backGround = (MusicPlayerBackGroundView) findViewById(R.id.BackGroundTest);
+		play = findViewById(R.id.PlayPause);
+		posX = backGround.getStartX() + (int)(backGround.getBackGroundWidth() * 0.8f);
+		posY = backGround.getStartY() + (int)(backGround.getBackGroundHeight() * 0.8f);
+	    play.setXY(posX , posY);
 		
-    }
+	}
+
+
 	public void onClick(View view){
 		
+		//play.setRadius(1000);
+	
 	}
 }
