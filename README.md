@@ -13,7 +13,7 @@
       (1) include all project you use
 # MediaPlayer
 ## Version :
-      beta v -1.0
+      beta v 0.1
 ## Features :
 
       (1)Play,Pause and Stop
@@ -22,5 +22,14 @@
       (4)find all songs in a folder
       (5)drog the scroll bar to the time you want
       (6)Play again button!
-      
+# AppView
+## Version :
+    beta v0.01
+## Features :
+    no
+## Schedule
+    2018/11/01 : draw a baotckground and play buttom
+                 do some function for them
+                 Issue : how to reflesh activity after setting
+    2018/11/02 :   
 # END
