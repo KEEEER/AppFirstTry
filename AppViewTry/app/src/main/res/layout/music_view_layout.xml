@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+	<LinearLayout
+		xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:orientation="horizontal">
+	    <ImageView
+		    	android:id="@+id/Icover"
+		    	android:layout_width="180dp"
+				android:layout_height="200dp"
+				android:layout_margin="0dp"/>
+	    <LinearLayout
+			xmlns:android="http://schemas.android.com/apk/res/android"
+		    android:layout_width="wrap_content"
+		    android:layout_height="match_parent"
+			android:orientation="vertical">
+	    	<LinearLayout
+				xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+				android:orientation="vertical">
+				<TextView
+					android:text = "The song name is : abcd"
+			        android:id="@+id/nameTextView"
+			        android:layout_margin="10dp"
+			        android:textSize = "20dp"
+			        android:layout_height="wrap_content"
+			        android:layout_width="wrap_content"/>
+				<TextView
+					android:text = "The author is : dddd"
+			        android:id="@+id/infoTextView"
+			        android:layout_margin="10dp"
+			        android:textSize = "20dp"
+			        android:layout_height="wrap_content"
+			        android:layout_width="wrap_content"/>
+
+			</LinearLayout>
+			<LinearLayout
+				xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+				android:orientation="vertical">
+				<TextView
+					android:text = "00 : 00"
+			        android:id="@+id/timeTextView"
+			        android:layout_margin="0dp"
+			        android:textSize = "20dp"
+			        android:layout_height="wrap_content"
+			        android:layout_width="wrap_content"/>
+				<SeekBar
+					android:id="@+id/seek"
+					android:layout_width="400dp" 
+					android:layout_height="wrap_content" 
+					android:maxWidth="200dp" 
+					android:minHeight="20dp" 
+					android:max="100000" />
+				<LinearLayout
+				xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+				android:orientation="horizontal">
+					<ImageView 
+						android:id="@+id/Iloop"
+				        android:layout_width="35dp"
+						android:layout_height="35dp"/>
+					<ImageView 
+						android:id="@+id/Irandom"
+				        android:layout_width="35dp"
+						android:layout_height="35dp"/>
+					<TextView
+						android:text = "MODE : 0"
+				        android:id="@+id/modeTextView"
+				        android:layout_margin="0dp"
+				        android:textSize = "20dp"
+				        android:layout_height="wrap_content"
+				        android:layout_width="wrap_content"/>	
+				</LinearLayout>	
+			</LinearLayout>
+		</LinearLayout>
+		<LinearLayout
+			xmlns:android="http://schemas.android.com/apk/res/android"
+		    android:layout_width="wrap_content"
+		    android:layout_height="match_parent"
+			android:orientation="vertical">
+				<ImageView 
+					android:id="@+id/Iset"
+			        android:layout_width="63dp"
+					android:layout_height="63dp"/>
+				<ImageView 
+					android:id="@+id/Iplay"
+			        android:layout_width="63dp"
+					android:layout_height="63dp"/>
+			    <ImageView
+					android:id="@+id/Istop"
+			        android:layout_width="63dp"
+					android:layout_height="63dp"/>
+		</LinearLayout>		
+	</LinearLayout>
+	<ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/songListView" />
+</LinearLayout>

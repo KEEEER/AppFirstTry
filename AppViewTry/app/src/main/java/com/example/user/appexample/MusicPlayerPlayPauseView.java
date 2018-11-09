@@ -76,7 +76,7 @@ public class MusicPlayerPlayPauseView extends View{
 	public void setXY(int x , int y){
 		cx = x;
 		cy = y;
-		//invalidate();
+		invalidate();
 	}
 	public void setRadius(int radius){
 		radius = radius;

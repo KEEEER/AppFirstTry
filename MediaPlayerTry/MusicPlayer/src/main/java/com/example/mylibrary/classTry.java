@@ -81,8 +81,7 @@ public class classTry extends AppCompatActivity {
 		});
 	}
 	
-    Runnable start=new Runnable(){
-	
+    Runnable start=new Runnable(){	
         @Override
         public void run() {
 			timeInSecond = mp.getCurrentPosition() / 1000;

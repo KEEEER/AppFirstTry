@@ -7,7 +7,7 @@ import android.os.Bundle;
 
 import android.graphics.Color;
 
-import android.widget.Toast; 
+import android.widget.*; 
 
 import android.content.Context;
 import android.os.Build;
@@ -18,6 +18,8 @@ import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.media.MediaPlayer;
+import java.io.IOException;
 
 
 
@@ -25,25 +27,19 @@ public class MainActivity extends AppCompatActivity {
 	private Context context;
 	private MusicPlayerBackGroundView backGround;
 	private MusicPlayerPlayPauseView play;
-	int posX;
-	int posY;
+	private MusicPlayerView mpv;
+	private MediaPlayer mp;
+	private TextView tx;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-		context=this;
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-		backGround = (MusicPlayerBackGroundView) findViewById(R.id.BackGroundTest);
-		play = findViewById(R.id.PlayPause);
-		posX = backGround.getStartX() + (int)(backGround.getBackGroundWidth() * 0.8f);
-		posY = backGround.getStartY() + (int)(backGround.getBackGroundHeight() * 0.8f);
-	    play.setXY(posX , posY);
 		
 	}
 
 
 	public void onClick(View view){
 		
-		//play.setRadius(1000);
 	
 	}
 }
