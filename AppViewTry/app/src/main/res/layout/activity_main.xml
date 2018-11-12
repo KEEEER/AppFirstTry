@@ -19,6 +19,7 @@
 		android:id="@+id/PlayPause"
 		android:onClick = "onClick"/-->
 	<com.example.user.appexample.MusicPlayerView
+		android:id = "@+id/music"
 		android:background = "@color/gray"
 		android:layout_width="match_parent"    
 		android:layout_height="500dp" />

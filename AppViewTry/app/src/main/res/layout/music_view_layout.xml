@@ -57,8 +57,7 @@
 					android:layout_width="400dp" 
 					android:layout_height="wrap_content" 
 					android:maxWidth="200dp" 
-					android:minHeight="20dp" 
-					android:max="100000" />
+					android:minHeight="20dp"/>
 				<LinearLayout
 				xmlns:android="http://schemas.android.com/apk/res/android"
 			    android:layout_width="wrap_content"
@@ -73,12 +72,22 @@
 				        android:layout_width="35dp"
 						android:layout_height="35dp"/>
 					<TextView
-						android:text = "MODE : 0"
+						android:text = "MODE : 0   "
 				        android:id="@+id/modeTextView"
 				        android:layout_margin="0dp"
 				        android:textSize = "20dp"
 				        android:layout_height="wrap_content"
 				        android:layout_width="wrap_content"/>	
+				    <Button
+				    	android:text = "時間排序"
+						android:id="@+id/SortByTime"
+				        android:layout_width="wrap_content"
+						android:layout_height="wrap_content"/>
+					<Button 
+						android:text = "歌曲名排序"
+						android:id="@+id/SortByName"
+				        android:layout_width="wrap_content"
+						android:layout_height="wrap_content"/>
 				</LinearLayout>	
 			</LinearLayout>
 		</LinearLayout>

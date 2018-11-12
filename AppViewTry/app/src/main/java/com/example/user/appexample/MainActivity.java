@@ -24,17 +24,16 @@ import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
-	private Context context;
-	private MusicPlayerBackGroundView backGround;
-	private MusicPlayerPlayPauseView play;
-	private MusicPlayerView mpv;
-	private MediaPlayer mp;
+	private MusicPlayerView mediaPlayer;
 	private TextView tx;
+	private String path = "/storage/emulated/0/Download/";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-		
+		mediaPlayer = (MusicPlayerView)findViewById(R.id.music);
+		mediaPlayer.setAbsolutePath(path , 0);
+
 	}
 
 

@@ -24,29 +24,37 @@ import java.text.SimpleDateFormat;
 import java.util.Date; 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Collections;
+import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.Map;
 
  //RelativeLayout
 public class MusicPlayerView extends LinearLayout{
-	private int timeInSecond = 0; 
-	private int songNumber = 0;
-	private int songCounts = 0;
-	private int currentProgress = 0;
-	private int mode = 0; // normal(0) , recycle(1) , random(2)
+	private Toast toast;
+	private static int songNumber = 0;
+	private static int songCounts = 0;
+	private static int currentProgress = 0;
 
-	private String timeStack;
-	private String strSource = "NODATA";
-	private String strName = "Pick one!";
-	private String strInfo = "Pick one!";
+	private static String strSource = "NODATA";
+	private static String strName = "Pick one!";
+	private static String strInfo = "Pick one!";
 
-	private boolean isLoop = false;
-	private boolean isRandom = false;
-
+	private static boolean hasBeenCreated = false;
+	private static boolean isLoop = false;
+	private static boolean isRandom = false;
+	private static boolean sortByTime = false;
+	private static boolean sortByName = false;
+	
 	private ImageView coverImage;
 	private ImageView playImageView;
 	private ImageView stopImageView;
 	private ImageView setImageView;
 	private ImageView loopImageView;
 	private ImageView randomImageView;
+
+	private Button sortTimeButton;
+	private Button sortNameButton;
 
 	private TextView songNameText;
 	private TextView songInfoText;
@@ -59,28 +67,29 @@ public class MusicPlayerView extends LinearLayout{
 	private Button play;
 	private SeekBar seek;
 
-	private int maxHeight = 0;
-	private int maxWidth = 0;
-
-	private String status = "play";
 	private String timer;
 
-	private byte[] data; //Cover data
+	private static byte[] data; //Cover data
 
 	Random ran = new Random();
-	private MediaPlayer mp = new MediaPlayer();
+	private static MediaPlayer mp = new MediaPlayer();
+	private MediaPlayer mediaPrepare = new MediaPlayer();
+
 	private SimpleDateFormat timeFormat = new SimpleDateFormat(" mm:ss");
 	private Date date = new Date();
-	private Handler handler=new Handler();
-	private ArrayList<String> mp3_files;
-	private ArrayList<String> fileNames;
-	private MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+	private Handler handler = new Handler();
+	private ArrayList<String> fileNames = new ArrayList<>();
+	private ArrayList<String> filePath = new ArrayList<String>();
+	private ArrayList<Integer> fileTime = new ArrayList<>();
+
+	private static MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 	
 	public MusicPlayerView(Context context) {
         super(context);
         initLayout();
     }
 	public MusicPlayerView(Context context, AttributeSet attrs) {
+
         super(context, attrs);
         initLayout();
     	setImageView = (ImageView)findViewById(R.id.Iset);
@@ -90,18 +99,21 @@ public class MusicPlayerView extends LinearLayout{
         loopImageView = (ImageView)findViewById(R.id.Iloop);
         randomImageView = (ImageView)findViewById(R.id.Irandom);
 
+        sortTimeButton = (Button)findViewById(R.id.SortByTime);
+		sortNameButton = (Button)findViewById(R.id.SortByName);
+        
         songNameText = (TextView)findViewById(R.id.nameTextView);
         songInfoText = (TextView)findViewById(R.id.infoTextView);
 		songTimeText = (TextView)findViewById(R.id.timeTextView);        
 		songModeText = (TextView)findViewById(R.id.modeTextView);
 
-		fileNames = new ArrayList<>();
-		mp3_files = new ArrayList<String>(findSongs("/storage/emulated/0/Download/"));
 		
+		
+		
+		//findSingleAreaSongs("/storage/emulated/0/Download/")
 
 		songListView = (ListView)findViewById(R.id.songListView);
-		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1,mp3_files);
-		songListView.setAdapter(adapter);
+		
         seek = (SeekBar)findViewById(R.id.seek);
 
         setImageView.setImageResource(R.drawable.set);        
@@ -111,36 +123,54 @@ public class MusicPlayerView extends LinearLayout{
         loopImageView.setImageResource(R.drawable.loop);
         randomImageView.setImageResource(R.drawable.random);
 
-
         stopImageView.setOnClickListener(stopListener);
         playImageView.setOnClickListener(playListener);   
         setImageView.setOnClickListener(setListener);   
         loopImageView.setOnClickListener(loopListener);
         randomImageView.setOnClickListener(randomListener);
         songListView.setOnItemClickListener(onListClick);
+        sortTimeButton.setOnClickListener(sortTimeListener);
+        sortNameButton.setOnClickListener(sortNameListener);
 
         setTextView();
-
+        if(hasBeenCreated){
+        	setLastCurrentStatus();
+			seek.setMax(mp.getDuration());
+        }
+		
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 			@Override 
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				if (fromUser){
+				if (fromUser && !fileNames.isEmpty()){
 					currentProgress = progress;				
 				}
 			} 
 			@Override 
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				handler.removeCallbacks(statusReflesher);
+				if(!fileNames.isEmpty())
+					handler.removeCallbacks(statusReflesher);
 			}
 			@Override 
 			public void onStopTrackingTouch(SeekBar seekBar) { 
-				mp.seekTo(currentProgress);
-				handler.post(statusReflesher);
+				if(!fileNames.isEmpty()){
+					mp.seekTo(currentProgress);
+					handler.post(statusReflesher);	
+				}
+				
 			} 
-		});
-
+		});       
     //    handler.post(viewSizeRefresher);
     }
+
+    @Override
+    protected void onDetachedFromWindow(){
+    	super.onDetachedFromWindow();
+    	handler.removeCallbacks(statusReflesher);
+    	hasBeenCreated = true;
+    	toast = Toast.makeText(getContext() , "Hello!" , Toast.LENGTH_SHORT);
+		toast.show();
+    }
+
 	public MusicPlayerView(Context context,AttributeSet attrs,int defStyleAttr){
 		super(context, attrs , defStyleAttr);
 		initLayout();
@@ -154,16 +184,15 @@ public class MusicPlayerView extends LinearLayout{
 		final float scale = this.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
-
-  	ArrayList<String> findSongs(String Path) {
+    private ArrayList<String> findUnderAreaSongs(String Path) {
 		ArrayList<String> fileList = new ArrayList<>();
 			try{
 			   File rootFolder = new File(Path);
 			   File[] files = rootFolder.listFiles(); 
 			   	for (File file : files) {
 					if (file.isDirectory()) {
-					   if (findSongs(file.getAbsolutePath()) != null) {
-							fileList.addAll(findSongs(file.getAbsolutePath()));
+					   if (findSingleAreaSongs(file.getAbsolutePath()) != null) {
+							fileList.addAll(findSingleAreaSongs(file.getAbsolutePath()));
 						} 
 						else {
 							break;
@@ -183,6 +212,29 @@ public class MusicPlayerView extends LinearLayout{
 			   	return fileList;
 			}
 	}
+  	private ArrayList<String> findSingleAreaSongs(String Path) {
+		ArrayList<String> fileList = new ArrayList<>();
+		try{
+		   File rootFolder = new File(Path);
+		   File[] files = rootFolder.listFiles(); 
+		   	for (File file : files) {
+				if (file.isDirectory());
+				else if (file.getName().endsWith(".mp3")) {
+					setMediaPrepareSource(file.getAbsolutePath());
+					fileList.add(file.getAbsolutePath());
+				 	fileNames.add(file.getName() + getFormatTime(mediaPrepare.getDuration()));
+				 	fileTime.add(mediaPrepare.getDuration());
+				 }
+			}
+			songCounts = fileList.size();
+			return fileList;
+		}
+		catch(Exception e){
+			songCounts = fileList.size();
+			songInfoText.setText("CryCry");
+		   	return fileList;
+		}
+	}
     private Runnable statusReflesher = new Runnable(){	
         @Override
         public void run() {
@@ -192,7 +244,7 @@ public class MusicPlayerView extends LinearLayout{
 			if(isSongGoingToChange()){
 				setNextSongInfo();		// songNumber determine
 				setSong();				// set song to MediaPlayer
-				setPlayImageStatus();
+			//	setPlayImageStatus();
 				setSongStatus();
 			}
         }
@@ -210,25 +262,31 @@ public class MusicPlayerView extends LinearLayout{
     private ImageView.OnClickListener playListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {	
-	  		setPlayImageStatus();
-	  		setSongStatus();
+	  		if(!fileNames.isEmpty()){
+		  		setPlayImageStatus();
+		  		setSongStatus();
+		 	}
 	  	}
 	};
 	private ImageView.OnClickListener stopListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {
-	  		mp.pause();
-	  		resetView();						
-  			setPlayImageStatus();
-	  		setSongStatus();
-	  	}
+	  		if(!fileNames.isEmpty()){
+	  			mp.pause();
+		  		resetView();						
+	  			setPlayImageStatus();
+		  		setSongStatus();
+		  	}
+		}
 	};
 	private ImageView.OnClickListener setListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {
-	 		setSong();	
-	 		setPlayImageStatus();
-	  		setSongStatus();
+	  		if(!fileNames.isEmpty()){
+		 		setSong();	
+		 		setPlayImageStatus();
+		  		setSongStatus();
+		  	}
 	  	}
 	};
 	private ImageView.OnClickListener loopListener = new ImageView.OnClickListener() {
@@ -237,12 +295,12 @@ public class MusicPlayerView extends LinearLayout{
 			if(!isLoop){
 				isLoop = true;
 				isRandom = false;
-				songModeText.setText("MODE : 1");
+				songModeText.setText("MODE : 1   ");
 			}
 			else {
 				isLoop = false;
-				if(isRandom) songModeText.setText("MODE : 2");
-				else songModeText.setText("MODE : 0");
+				if(isRandom) songModeText.setText("MODE : 2   ");
+				else songModeText.setText("MODE : 0   ");
 			}		
 	  	}
 	};
@@ -252,15 +310,32 @@ public class MusicPlayerView extends LinearLayout{
 	 		if(!isRandom){
 	 			isRandom = true;
 	 			isLoop = false;
-	 			songModeText.setText("MODE : 2");
+	 			songModeText.setText("MODE : 2   ");
 	 		}
 	 		else{
 	 			isRandom = false;
-	 			if(isLoop) songModeText.setText("MODE : 1");
-	 			else songModeText.setText("MODE : 0");
+	 			if(isLoop) songModeText.setText("MODE : 1   ");
+	 			else songModeText.setText("MODE : 0   ");
 	 		}
 	  	}
 	};
+	private Button.OnClickListener sortTimeListener = new Button.OnClickListener(){
+		@Override
+	  	public void onClick(View v) {
+	  		sortByTime = true;
+			sortByName = false;
+	  		sortListByTime();
+	  	}
+	};
+	private Button.OnClickListener sortNameListener = new Button.OnClickListener(){
+		@Override
+	  	public void onClick(View v) {
+	  		sortByTime = false;
+			sortByName = true;
+	  		sortListByName();
+	  	}
+	};
+
 	private void setPlayImageStatus(){
 		if(mp.isPlaying()){
   			playImageView.setImageResource(R.drawable.play);  			
@@ -280,24 +355,35 @@ public class MusicPlayerView extends LinearLayout{
   			
   		}
 	}
+	private void setHandler(boolean status){
+		if(status)
+			handler.post(statusReflesher);
+		else
+			handler.removeCallbacks(statusReflesher);
+	}
 	private void setSong(){
 
  		beforeSet();	//MediaPlayer reset
  		
+ 		strSource = filePath.get(songNumber);	//Set which song is choosen from the song list
+
  		setSongRetriever();			//Set song info taker
  		strName = getSongName();	//Get song name from retriever
 	 	strInfo = getSongInfo();	//Get song info from retriever
+
+	
 		setTextView();				//Set name and info
 	 	
 	 	data = getPicture();	//Get cover image from retriever
 	 	setCover(data);			//Set cover
 
-		strSource = mp3_files.get(songNumber);	//Set which song is choosen from the song list
+		
 		setMediaPlayerSource(strSource);		//Set resource to MediaPlayer
 
 		seek.setMax(mp.getDuration());	
 		seek.setProgress(0);
 		initTime();		//Reset the time
+		
 	}
 	private void resetView(){
 	//	mp.pause();
@@ -317,6 +403,9 @@ public class MusicPlayerView extends LinearLayout{
 	private String getSongInfo(){
 		return retriever.extractMetadata(2);	
 	}
+	private void setSongNumber(int number){
+		songNumber = number;
+	}
 	private void setCurrentSeek(int position){
 		seek.setProgress(position);
 	}
@@ -329,10 +418,16 @@ public class MusicPlayerView extends LinearLayout{
 	private void setSongRetriever(){
 		retriever.setDataSource(strSource);	
 	}
-	private void setCurrentTime(long time){
+	private void setCurrentTime(int time){
 		date.setTime(time);
 		timer = timeFormat.format(date);
 		songTimeText.setText(timer);
+	}
+	private String getFormatTime(int time){
+		String t;
+		date.setTime(time);
+		t = timeFormat.format(date);
+		return t; 
 	}
 	private void initTime(){
 		date.setTime(0);
@@ -346,14 +441,28 @@ public class MusicPlayerView extends LinearLayout{
 	private void beforeSet(){
 		mp.reset();
  		if(strSource == "NODATA"){
- 			strSource = mp3_files.get(0);
+ 			strSource = filePath.get(0);
  		}
  	//	setPlayImageStatus();
 	}
-	private void setMediaPlayerSource(String sourceStr){
+	private void setMediaPlayerSource(String source){
 		try {
- 			mp.setDataSource(sourceStr);
+			mp.reset();
+ 			mp.setDataSource(source);
  			mp.prepare();
+		}catch (IllegalArgumentException e) {	
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }catch(IOException e){
+    		e.printStackTrace();
+   		}
+	}
+	private void setMediaPrepareSource(String source){
+		try {
+			mediaPrepare.reset();
+ 			mediaPrepare.setDataSource(source);
+ 			mediaPrepare.prepare();
 		}catch (IllegalArgumentException e) {	
             e.printStackTrace();
         } catch (IllegalStateException e) {
@@ -380,11 +489,122 @@ public class MusicPlayerView extends LinearLayout{
 			while(songNumber == songTemp){
 				songNumber = ran.nextInt(songCounts);
 			}
-			
 		}
 		else{
 			songNumber++;
 			if(songNumber == songCounts) songNumber = 0;
 		}
 	}
+	private void setLastCurrentStatus(){
+		if(mp.isPlaying()){
+			playImageView.setImageResource(R.drawable.pause);
+			setCover(data);
+			setHandler(true);
+		}
+		else {
+			setCover(data);
+		//	setHandler(false);
+		}	
+	}
+	private void sortListByTime(){
+		
+		ArrayList<Integer> arrTime = new ArrayList<>();
+  		ArrayList<String> arrPath = new ArrayList<>();
+  		ArrayList<String> arrNames = new ArrayList<>();
+  		Map<Integer , Integer> sortTimeMap = new TreeMap<Integer , Integer>();
+
+  		for(int i = 0 ; i < songCounts ; i++){
+  			if(i == 0)
+  				sortTimeMap.put(fileTime.get(i) , i);
+  			else {
+  				while(sortTimeMap.containsKey(fileTime.get(i))){
+  					int temp = fileTime.get(i);
+  					temp++;
+  					fileTime.set(i,temp);
+  				}
+  				sortTimeMap.put(fileTime.get(i) , i);
+  			}
+  		}
+  		for (Map.Entry<Integer, Integer> entry : sortTimeMap.entrySet()) {
+  			arrTime.add(fileTime.get(entry.getValue()));
+  			arrPath.add(filePath.get(entry.getValue()));
+  			arrNames.add(fileNames.get(entry.getValue()));
+        }
+        fileTime.clear();
+        filePath.clear();
+        fileNames.clear();
+
+        fileTime.addAll(arrTime);
+        filePath.addAll(arrPath);
+        fileNames.addAll(arrNames);
+
+        setSongNumber(fileNames.indexOf(strName));
+        adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1,fileNames);
+		songListView.setAdapter(adapter);
+	}
+	private void sortListByName(){
+
+		ArrayList<Integer> arrTime = new ArrayList<>();
+  		ArrayList<String> arrPath = new ArrayList<>();
+  		ArrayList<String> arrNames = new ArrayList<>();
+  		Map<String , Integer> sortNameMap = new TreeMap<String , Integer>();
+
+  		for(int i = 0 ; i < songCounts ; i++){
+  			
+  				sortNameMap.put(fileNames.get(i) , i);
+  			
+  		}
+  		for (Map.Entry<String, Integer> entry : sortNameMap.entrySet()) {
+  			arrTime.add(fileTime.get(entry.getValue()));
+  			arrPath.add(filePath.get(entry.getValue()));
+  			arrNames.add(fileNames.get(entry.getValue()));
+        }
+        fileTime.clear();
+        filePath.clear();
+        fileNames.clear();
+
+        fileTime.addAll(arrTime);
+        filePath.addAll(arrPath);
+        fileNames.addAll(arrNames);
+
+;
+        adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1,fileNames);
+		songListView.setAdapter(adapter);
+	}
+	// PUBLIC METHOD **********************************************************************//
+	public void setAbsolutePath(String path , int mode){
+		
+		/********************************* 
+		
+			mode 0 : findSingleAreaSongs
+			mode 1 : findUnderAreaSongs
+		
+		*********************************/
+		switch(mode) {
+			case 0:
+				fileTime.clear();
+      		  	filePath.clear();
+       			fileNames.clear();
+				filePath.addAll(findSingleAreaSongs(path));
+				if(sortByTime){
+					sortListByTime();
+					toast = Toast.makeText(getContext() , strName , Toast.LENGTH_SHORT);
+					toast.show();
+				} 
+				if(sortByName){
+					sortListByName();
+					toast = Toast.makeText(getContext() , strName , Toast.LENGTH_SHORT);
+					toast.show();
+				} 
+				adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1,fileNames);
+				songListView.setAdapter(adapter);
+				break;
+			case 1:
+				findUnderAreaSongs(path);
+				break;
+		}
+			
+	}
+
+
 }
