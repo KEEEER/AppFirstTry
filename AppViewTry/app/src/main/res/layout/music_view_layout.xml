@@ -78,16 +78,6 @@
 				        android:textSize = "20dp"
 				        android:layout_height="wrap_content"
 				        android:layout_width="wrap_content"/>	
-				    <Button
-				    	android:text = "時間排序"
-						android:id="@+id/SortByTime"
-				        android:layout_width="wrap_content"
-						android:layout_height="wrap_content"/>
-					<Button 
-						android:text = "歌曲名排序"
-						android:id="@+id/SortByName"
-				        android:layout_width="wrap_content"
-						android:layout_height="wrap_content"/>
 				</LinearLayout>	
 			</LinearLayout>
 		</LinearLayout>

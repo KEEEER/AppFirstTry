@@ -8,7 +8,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
-import android.widget.*; 
+import android.widget.*;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.LayoutInflater; 
@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.media.MediaPlayer;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.media.AudioManager;
 
 import java.io.IOException;
 import java.io.File;
@@ -29,89 +30,62 @@ import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.Map;
 
- //RelativeLayout
 public class MusicPlayerView extends LinearLayout{
-	private Toast toast;
 	private static int songNumber = 0;
 	private static int songCounts = 0;
 	private static int currentProgress = 0;
-
 	private static String strSource = "NODATA";
 	private static String strName = "Pick one!";
 	private static String strInfo = "Pick one!";
-
 	private static boolean hasBeenCreated = false;
-	private static boolean isLoop = false;
-	private static boolean isRandom = false;
+	private String timer;
 
-	
 	private ImageView coverImage;
 	private ImageView playImageView;
 	private ImageView stopImageView;
 	private ImageView setImageView;
 	private ImageView loopImageView;
 	private ImageView randomImageView;
-
-	private Button sortTimeButton;
-	private Button sortNameButton;
-
 	private TextView songNameText;
 	private TextView songInfoText;
 	private TextView songTimeText;
 	private TextView songModeText;
-
 	private ArrayAdapter adapter;
 	private ListView songListView;
-
-	private Button play;
 	private SeekBar seek;
-
-	private String timer;
-
+	private VideoView video;
 	private static byte[] data; //Cover data
-
+	
 	Random ran = new Random();
+	private static MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+	private static ModeSelect mode = new ModeSelect();
 	private static MediaPlayer mp = new MediaPlayer();
-	private MediaPlayer mediaPrepare = new MediaPlayer();
 
 	private SimpleDateFormat timeFormat = new SimpleDateFormat(" mm:ss");
-	private Date date = new Date();
-	private Handler handler = new Handler();
-
-
 	private ArrayList<Song> songInfo = new ArrayList<>();
-	private static MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+
+	private Handler handler = new Handler();
+	private Date date = new Date();
 	
 	public MusicPlayerView(Context context) {
         super(context);
         initLayout();
     }
 	public MusicPlayerView(Context context, AttributeSet attrs) {
-
         super(context, attrs);
         initLayout();
+		video = new VideoView(context);
     	setImageView = (ImageView)findViewById(R.id.Iset);
         playImageView = (ImageView)findViewById(R.id.Iplay);
         stopImageView = (ImageView)findViewById(R.id.Istop);
         coverImage = (ImageView)findViewById(R.id.Icover);
         loopImageView = (ImageView)findViewById(R.id.Iloop);
-        randomImageView = (ImageView)findViewById(R.id.Irandom);
-
-        sortTimeButton = (Button)findViewById(R.id.SortByTime);
-		sortNameButton = (Button)findViewById(R.id.SortByName);
-        
+        randomImageView = (ImageView)findViewById(R.id.Irandom);      
         songNameText = (TextView)findViewById(R.id.nameTextView);
         songInfoText = (TextView)findViewById(R.id.infoTextView);
 		songTimeText = (TextView)findViewById(R.id.timeTextView);        
 		songModeText = (TextView)findViewById(R.id.modeTextView);
-
-		
-		
-		
-		//findSingleAreaSongs("/storage/emulated/0/Download/")
-
-		songListView = (ListView)findViewById(R.id.songListView);
-		
+		songListView = (ListView)findViewById(R.id.songListView);	
         seek = (SeekBar)findViewById(R.id.seek);
 
         setImageView.setImageResource(R.drawable.set);        
@@ -120,22 +94,17 @@ public class MusicPlayerView extends LinearLayout{
         coverImage.setImageResource(R.drawable.android);
         loopImageView.setImageResource(R.drawable.loop);
         randomImageView.setImageResource(R.drawable.random);
-
         stopImageView.setOnClickListener(stopListener);
         playImageView.setOnClickListener(playListener);   
         setImageView.setOnClickListener(setListener);   
         loopImageView.setOnClickListener(loopListener);
         randomImageView.setOnClickListener(randomListener);
         songListView.setOnItemClickListener(onListClick);
-        sortTimeButton.setOnClickListener(sortTimeListener);
-        sortNameButton.setOnClickListener(sortNameListener);
-
         setTextView();
         if(hasBeenCreated){
         	setLastCurrentStatus();
 			seek.setMax(mp.getDuration());
-        }
-		
+        }	
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 			@Override 
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -153,84 +122,24 @@ public class MusicPlayerView extends LinearLayout{
 				if(!songInfo.isEmpty()){
 					mp.seekTo(currentProgress);
 					handler.post(statusReflesher);	
-				}
-				
+				}	
 			} 
 		});       
-    //    handler.post(viewSizeRefresher);
     }
-
     @Override
     protected void onDetachedFromWindow(){
     	super.onDetachedFromWindow();
     	handler.removeCallbacks(statusReflesher);
-    	hasBeenCreated = true;
-    	
+    	hasBeenCreated = true;    	
     }
-
 	public MusicPlayerView(Context context,AttributeSet attrs,int defStyleAttr){
 		super(context, attrs , defStyleAttr);
 		initLayout();
 	}
 	private void initLayout(){
-    	View view = inflate(getContext(), R.layout.music_view_layout, null);
-    	
+    	View view = inflate(getContext(), R.layout.music_view_layout, null);  	
         addView(view);
     }
-	public int dip2px(float dpValue) {
-		final float scale = this.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-/*    private ArrayList<String> findUnderAreaSongs(String Path) {
-		ArrayList<String> fileList = new ArrayList<>();
-			try{
-			   File rootFolder = new File(Path);
-			   File[] files = rootFolder.listFiles(); 
-			   	for (File file : files) {
-					if (file.isDirectory()) {
-					   if (findSingleAreaSongs(file.getAbsolutePath()) != null) {
-							fileList.addAll(findSingleAreaSongs(file.getAbsolutePath()));
-						} 
-						else {
-							break;
-						}
-					 } 
-					 else if (file.getName().endsWith(".mp3")) {
-						fileList.add(file.getAbsolutePath());
-					 	fileNames.add(file.getName());
-					 }
-				}
-				songCounts = fileList.size();
-				return fileList;
-			}
-			catch(Exception e){
-				songCounts = fileList.size();
-				songInfoText.setText("CryCry");
-			   	return fileList;
-			}
-	}*/
-  	private void findSingleAreaSongs(String Path) {
-		try{
-		   File rootFolder = new File(Path);
-		   File[] files = rootFolder.listFiles(); 
-		   	for (File file : files) {
-				if (file.isDirectory());
-				else if (file.getName().endsWith(".mp3")) {
-					setMediaPrepareSource(file.getAbsolutePath());
-					String name = file.getName() + getFormatTime(mediaPrepare.getDuration());
-					String path = file.getAbsolutePath();
-					Long editDate = file.lastModified();
-					int duration = mediaPrepare.getDuration();
-					songInfo.add(new Song(name , path , editDate , duration));			 	
-				 }
-			}
-			songCounts = songInfo.size();
-		}
-		catch(Exception e){
-			songCounts =  songInfo.size();
-			songInfoText.setText("CryCry");
-		}
-	}
     private Runnable statusReflesher = new Runnable(){	
         @Override
         public void run() {
@@ -238,28 +147,25 @@ public class MusicPlayerView extends LinearLayout{
 			setCurrentSeek(mp.getCurrentPosition());
 			handler.postDelayed(statusReflesher , 10);
 			if(isSongGoingToChange()){
-				setNextSongInfo();		// songNumber determine
-				setSong();				// set song to MediaPlayer
-			//	setPlayImageStatus();
+				songNameText.setText("end");
+				songNumber = mode.determineNextSong(songNumber , songCounts);
+				LoadSongResource();			// set song to MediaPlayer
 				setSongStatus();
 			}
         }
     };
-
     private AdapterView.OnItemClickListener onListClick = new AdapterView.OnItemClickListener(){
         @Override
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         	songNumber = position;
-			setSong();
-			setPlayImageStatus();
+			LoadSongResource();		
 	  		setSongStatus();
 		}
 	};
     private ImageView.OnClickListener playListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {	
-	  		if(!songInfo.isEmpty()){
-		  		setPlayImageStatus();
+	  		if(!songInfo.isEmpty()){		  		
 		  		setSongStatus();
 		 	}
 	  	}
@@ -269,8 +175,9 @@ public class MusicPlayerView extends LinearLayout{
 	  	public void onClick(View v) {
 	  		if(!songInfo.isEmpty()){
 	  			mp.pause();
-		  		resetView();						
-	  			setPlayImageStatus();
+		  		mp.seekTo(0); 
+				seek.setProgress(0);
+				initTime();										
 		  		setSongStatus();
 		  	}
 		}
@@ -279,8 +186,7 @@ public class MusicPlayerView extends LinearLayout{
 	  	@Override
 	  	public void onClick(View v) {
 	  		if(!songInfo.isEmpty()){
-		 		setSong();	
-		 		setPlayImageStatus();
+		 		LoadSongResource();	
 		  		setSongStatus();
 		  	}
 	  	}
@@ -288,144 +194,54 @@ public class MusicPlayerView extends LinearLayout{
 	private ImageView.OnClickListener loopListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {
-			if(!isLoop){
-				isLoop = true;
-				isRandom = false;
-				songModeText.setText("MODE : 1   ");
-			}
-			else {
-				isLoop = false;
-				if(isRandom) songModeText.setText("MODE : 2   ");
-				else songModeText.setText("MODE : 0   ");
-			}		
+	  		
+	  		mode.modeToSingleLoop();
 	  	}
 	};
 	private ImageView.OnClickListener randomListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {
-	 		if(!isRandom){
-	 			isRandom = true;
-	 			isLoop = false;
-	 			songModeText.setText("MODE : 2   ");
-	 		}
-	 		else{
-	 			isRandom = false;
-	 			if(isLoop) songModeText.setText("MODE : 1   ");
-	 			else songModeText.setText("MODE : 0   ");
-	 		}
+	  		mode.modeToRandom();
 	  	}
 	};
-	private Button.OnClickListener sortTimeListener = new Button.OnClickListener(){
-		@Override
-	  	public void onClick(View v) {
-	  		int i=0;
-	  		Collections.sort(songInfo , new ByDuration());
-	  		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
-			for(Song s : songInfo){
-				if(songInfo.get(i).Name == strName) songNumber = i;
-				adapter.add(s.Name);
-				i++;
-			}
-			songListView.setAdapter(adapter);	 	
-	  	}
-	};
-	private Button.OnClickListener sortNameListener = new Button.OnClickListener(){
-		@Override
-	  	public void onClick(View v) {
-	  		int i=0;
-	  		Collections.sort(songInfo , new ByName());
-	  		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
-			for(Song s : songInfo){
-				if(songInfo.get(i).Name == strName) songNumber = i;
-				adapter.add(s.Name);
-				i++;
-			}
-			songListView.setAdapter(adapter);	
-	  	}
-	};
-
-	private void setPlayImageStatus(){
-		if(mp.isPlaying()){
-  			playImageView.setImageResource(R.drawable.play);  			
-  		}
-  		else{
-  			playImageView.setImageResource(R.drawable.pause);
-  		}
-	}
 	private void setSongStatus(){
 		if(mp.isPlaying()){
 			mp.pause();
-			handler.removeCallbacks(statusReflesher);	
+			handler.removeCallbacks(statusReflesher);
+			if(!isSongGoingToChange()) playImageView.setImageResource(R.drawable.play);	
   		}
   		else{
   			mp.start();
   			handler.post(statusReflesher);  	
-  			
+  			if(!isSongGoingToChange()) playImageView.setImageResource(R.drawable.pause);	
   		}
 	}
-	private void setHandler(boolean status){
-		if(status)
-			handler.post(statusReflesher);
-		else
-			handler.removeCallbacks(statusReflesher);
-	}
-	private void setSong(){
-
+	private void LoadSongResource(){
  		beforeSet();	//MediaPlayer reset
- 		
- 		strSource = songInfo.get(songNumber).Path;	//Set which song is choosen from the song list
-
- 		
- 		setSongRetriever();			//Set song info taker
+ 		strSource = songInfo.get(songNumber).Path;	//Set which song is choosen from the song list		
+ 	//	retriever.setDataSource(strSource);			//Set song info taker
  		strName = getSongName();	//Get song name from retriever
 	 	strInfo = getSongInfo();	//Get song info from retriever
-
-	
 		setTextView();				//Set name and info
-	 	
-	 	data = getPicture();	//Get cover image from retriever
+	 	data = retriever.getEmbeddedPicture();	//Get cover image from retriever
 	 	setCover(data);			//Set cover
-
 		
 		setMediaPlayerSource(strSource);		//Set resource to MediaPlayer
-
-		seek.setMax(mp.getDuration());	
+		seek.setMax(songInfo.get(songNumber).Duration);	
 		seek.setProgress(0);
 		initTime();		//Reset the time
-		
-	}
-	private void resetView(){
-	//	mp.pause();
-		mp.seekTo(0); 
-		seek.setProgress(0);
-		initTime();		
 	}
 	private boolean isSongGoingToChange(){
-		return (mp.getDuration() <= mp.getCurrentPosition());
-	}
-	private byte[] getPicture(){
-		return retriever.getEmbeddedPicture();
+		return (songInfo.get(songNumber).Duration <= mp.getCurrentPosition());
 	}
 	private String getSongName(){
 		return songInfo.get(songNumber).Name;
 	}
 	private String getSongInfo(){
-		return retriever.extractMetadata(2);	
-	}
-	private void setSongNumber(int number){
-		songNumber = number;
+		return String.valueOf(songInfo.get(songNumber).Duration);	
 	}
 	private void setCurrentSeek(int position){
 		seek.setProgress(position);
-	}
-	private void setSongName(String name){
-		strName = name;
-	}
-	private void setSongInfo(String info){
-		strInfo = info;	
-	}
-	private void setSongRetriever(){
-		retriever.setDataSource(strSource);	
 	}
 	private void setCurrentTime(int time){
 		date.setTime(time);
@@ -451,33 +267,15 @@ public class MusicPlayerView extends LinearLayout{
 		mp.reset();
  		if(strSource == "NODATA"){
  			strSource = songInfo.get(0).Path;
- 		}
- 	//	setPlayImageStatus();
-	}
+ 		}	
+	}	
 	private void setMediaPlayerSource(String source){
 		try {
-			mp.reset();
+			mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
  			mp.setDataSource(source);
  			mp.prepare();
-		}catch (IllegalArgumentException e) {	
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }catch(IOException e){
-    		e.printStackTrace();
-   		}
-	}
-	private void setMediaPrepareSource(String source){
-		try {
-			mediaPrepare.reset();
- 			mediaPrepare.setDataSource(source);
- 			mediaPrepare.prepare();
-		}catch (IllegalArgumentException e) {	
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }catch(IOException e){
-    		e.printStackTrace();
+        }catch(Exception e){
+
    		}
 	}
 	private void setCover(byte[] data){
@@ -489,62 +287,45 @@ public class MusicPlayerView extends LinearLayout{
 			coverImage.setImageResource(R.drawable.android);
 		}
 	}
-	private void setNextSongInfo(){
-		if(isLoop){
-
-		}
-		else if(isRandom){
-			int songTemp = songNumber;
-			while(songNumber == songTemp){
-				songNumber = ran.nextInt(songCounts);
-			}
-		}
-		else{
-			songNumber++;
-			if(songNumber == songCounts) songNumber = 0;
-		}
-	}
 	private void setLastCurrentStatus(){
 		if(mp.isPlaying()){
 			playImageView.setImageResource(R.drawable.pause);
 			setCover(data);
-			setHandler(true);
+			handler.post(statusReflesher);
 		}
 		else {
 			setCover(data);
-		//	setHandler(false);
 		}	
 	}
-	
+	private void FillList(ArrayList<Song> info){
+		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
+		for(Song inf : info){
+			adapter.add(inf.Name);
+		}
+		songListView.setAdapter(adapter);
+		songCounts = info.size();
+	}
 	// PUBLIC METHOD **********************************************************************//
-	
 	public void setAbsolutePath(String path){
-		
-		/********************************* 
-		
-			mode 0 : findSingleAreaSongs
-			mode 1 : findUnderAreaSongs
-
-		
-		*********************************/
-		findSingleAreaSongs(path);
-		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
-		for(Song si : songInfo){
-			adapter.add(si.Name);
-		}
+	//	findSingleAreaSongs(path);
+		FillList(songInfo);
 		songListView.setAdapter(adapter);			
-	//	toast = Toast.makeText(getContext() , songInfo.get(songNumber).Path , Toast.LENGTH_SHORT);
-	//	toast.show();
+	}
+	public void setList(ArrayList<Song> sis){
+		songInfo.clear();
+		songInfo.addAll(sis);
+		FillList(sis);			
+	}
+	public void addSong(Song sis){
+		songInfo.add(sis);
+		FillList(songInfo);
+	}
+	public void addStreamingSong(String url){
+   	//	songInfo.add(new Song("haha" , url , 10000L , 200000));
+   		FillList(songInfo);
+   		songCounts++;
+	}
 
-	}
-	public void setListData(ArrayList<Song> sis){
-		this.songInfo.addAll(sis);
-		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
-		for(Song s : songInfo){
-			adapter.add(s.Name);
-		}
-		songListView.setAdapter(adapter);	
-		songCounts = sis.size();
-	}
-	
 }
+
+
