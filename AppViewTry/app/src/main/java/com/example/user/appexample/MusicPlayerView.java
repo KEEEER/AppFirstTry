@@ -1,5 +1,5 @@
 package com.example.user.appexample;
-import android.net.Uri ;
+import android.net.Uri;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Bitmap;
@@ -16,7 +16,6 @@ import android.content.Context;
 import android.app.Activity;
 import android.media.MediaPlayer;
 import android.media.MediaMetadataRetriever;
-import android.net.Uri;
 import android.media.AudioManager;
 
 import java.io.IOException;
@@ -68,44 +67,44 @@ public class MusicPlayerView extends LinearLayout{
 	private Date date = new Date();
 	
 	public MusicPlayerView(Context context) {
-        super(context);
-        initLayout();
-    }
+		super(context);
+		initLayout();
+	}
 	public MusicPlayerView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        initLayout();
-		video = new VideoView(context);
-    	setImageView = (ImageView)findViewById(R.id.Iset);
-        playImageView = (ImageView)findViewById(R.id.Iplay);
-        stopImageView = (ImageView)findViewById(R.id.Istop);
-        coverImage = (ImageView)findViewById(R.id.Icover);
-        loopImageView = (ImageView)findViewById(R.id.Iloop);
-        randomImageView = (ImageView)findViewById(R.id.Irandom);      
-        songNameText = (TextView)findViewById(R.id.nameTextView);
-        songInfoText = (TextView)findViewById(R.id.infoTextView);
-		songTimeText = (TextView)findViewById(R.id.timeTextView);        
+		super(context, attrs);
+		initLayout();
+		setImageView = (ImageView)findViewById(R.id.Iset);
+		playImageView = (ImageView)findViewById(R.id.Iplay);
+		stopImageView = (ImageView)findViewById(R.id.Istop);
+		coverImage = (ImageView)findViewById(R.id.Icover);
+		loopImageView = (ImageView)findViewById(R.id.Iloop);
+		randomImageView = (ImageView)findViewById(R.id.Irandom);
+		songNameText = (TextView)findViewById(R.id.nameTextView);
+		songInfoText = (TextView)findViewById(R.id.infoTextView);
+		songTimeText = (TextView)findViewById(R.id.timeTextView);
 		songModeText = (TextView)findViewById(R.id.modeTextView);
 		songListView = (ListView)findViewById(R.id.songListView);	
-        seek = (SeekBar)findViewById(R.id.seek);
+		seek = (SeekBar)findViewById(R.id.seek);
 
-        setImageView.setImageResource(R.drawable.set);        
-        playImageView.setImageResource(R.drawable.play);      
-        stopImageView.setImageResource(R.drawable.stop);        
-        coverImage.setImageResource(R.drawable.android);
-        loopImageView.setImageResource(R.drawable.loop);
-        randomImageView.setImageResource(R.drawable.random);
-        stopImageView.setOnClickListener(stopListener);
-        playImageView.setOnClickListener(playListener);   
-        setImageView.setOnClickListener(setListener);   
-        loopImageView.setOnClickListener(loopListener);
-        randomImageView.setOnClickListener(randomListener);
-        songListView.setOnItemClickListener(onListClick);
-        setTextView();
-        if(hasBeenCreated){
-        	setLastCurrentStatus();
+		setImageView.setImageResource(R.drawable.set);
+		playImageView.setImageResource(R.drawable.play);
+		stopImageView.setImageResource(R.drawable.stop);
+		coverImage.setImageResource(R.drawable.android);
+		loopImageView.setImageResource(R.drawable.loop);
+		randomImageView.setImageResource(R.drawable.random);
+		stopImageView.setOnClickListener(stopListener);
+		playImageView.setOnClickListener(playListener);   
+		setImageView.setOnClickListener(setListener);   
+		loopImageView.setOnClickListener(loopListener);
+		randomImageView.setOnClickListener(randomListener);
+		songListView.setOnItemClickListener(onListClick);
+		mp.setOnCompletionListener(onCompletion);
+		setTextView();
+		if(hasBeenCreated){
+			setLastCurrentStatus();
 			seek.setMax(mp.getDuration());
-        }	
-        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+		}	
+		seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 			@Override 
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				if (fromUser && !songInfo.isEmpty()){
@@ -124,45 +123,53 @@ public class MusicPlayerView extends LinearLayout{
 					handler.post(statusReflesher);	
 				}	
 			} 
-		});       
-    }
-    @Override
-    protected void onDetachedFromWindow(){
-    	super.onDetachedFromWindow();
-    	handler.removeCallbacks(statusReflesher);
-    	hasBeenCreated = true;    	
-    }
+		});
+	}
+
 	public MusicPlayerView(Context context,AttributeSet attrs,int defStyleAttr){
 		super(context, attrs , defStyleAttr);
 		initLayout();
 	}
 	private void initLayout(){
-    	View view = inflate(getContext(), R.layout.music_view_layout, null);  	
-        addView(view);
-    }
-    private Runnable statusReflesher = new Runnable(){	
-        @Override
-        public void run() {
-			setCurrentTime(mp.getCurrentPosition());
-			setCurrentSeek(mp.getCurrentPosition());
-			handler.postDelayed(statusReflesher , 10);
-			if(isSongGoingToChange()){
-				songNameText.setText("end");
-				songNumber = mode.determineNextSong(songNumber , songCounts);
-				LoadSongResource();			// set song to MediaPlayer
-				setSongStatus();
-			}
-        }
-    };
-    private AdapterView.OnItemClickListener onListClick = new AdapterView.OnItemClickListener(){
-        @Override
-        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-        	songNumber = position;
-			LoadSongResource();		
-	  		setSongStatus();
+		View view = inflate(getContext(), R.layout.music_view_layout, null);  	
+		addView(view);
+	}
+
+	@Override
+	protected void onDetachedFromWindow(){
+		super.onDetachedFromWindow();
+		handler.removeCallbacks(statusReflesher);
+		hasBeenCreated = true;
+	}
+
+	private Runnable statusReflesher = new Runnable(){	
+		@Override
+		public void run() {
+			date.setTime(mp.getCurrentPosition());
+			timer = timeFormat.format(date);
+			songTimeText.setText(timer);
+			seek.setProgress(mp.getCurrentPosition());
+			handler.postDelayed(statusReflesher , 1000);
 		}
 	};
-    private ImageView.OnClickListener playListener = new ImageView.OnClickListener() {
+	public MediaPlayer.OnCompletionListener onCompletion = new MediaPlayer.OnCompletionListener(){
+		@Override
+		public void onCompletion(MediaPlayer mp) {
+			songNumber = mode.determineNextSong(songNumber , songCounts);
+        	loadSongResource();
+        	setSongStatus();
+ 	   }
+	};
+
+	private AdapterView.OnItemClickListener onListClick = new AdapterView.OnItemClickListener(){
+		@Override
+		public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+			songNumber = position;
+			loadSongResource();		
+			setSongStatus();
+		}
+	};
+	private ImageView.OnClickListener playListener = new ImageView.OnClickListener() {
 	  	@Override
 	  	public void onClick(View v) {	
 	  		if(!songInfo.isEmpty()){		  		
@@ -186,7 +193,7 @@ public class MusicPlayerView extends LinearLayout{
 	  	@Override
 	  	public void onClick(View v) {
 	  		if(!songInfo.isEmpty()){
-		 		LoadSongResource();	
+		 		loadSongResource();	
 		  		setSongStatus();
 		  	}
 	  	}
@@ -208,51 +215,27 @@ public class MusicPlayerView extends LinearLayout{
 		if(mp.isPlaying()){
 			mp.pause();
 			handler.removeCallbacks(statusReflesher);
-			if(!isSongGoingToChange()) playImageView.setImageResource(R.drawable.play);	
-  		}
-  		else{
-  			mp.start();
-  			handler.post(statusReflesher);  	
-  			if(!isSongGoingToChange()) playImageView.setImageResource(R.drawable.pause);	
-  		}
+			playImageView.setImageResource(R.drawable.play);	
+		}
+		else{
+			mp.start();
+			handler.post(statusReflesher);  	
+			playImageView.setImageResource(R.drawable.pause);	
+		}
 	}
-	private void LoadSongResource(){
- 		beforeSet();	//MediaPlayer reset
- 		strSource = songInfo.get(songNumber).Path;	//Set which song is choosen from the song list		
- 	//	retriever.setDataSource(strSource);			//Set song info taker
- 		strName = getSongName();	//Get song name from retriever
-	 	strInfo = getSongInfo();	//Get song info from retriever
-		setTextView();				//Set name and info
-	 	data = retriever.getEmbeddedPicture();	//Get cover image from retriever
-	 	setCover(data);			//Set cover
-		
+	private void loadSongResource(){
+		mp.reset();
+		strSource = songInfo.get(songNumber).getPath();	//Set which song is choosen from the song list		
+		strName = songInfo.get(songNumber).getName();	//Get song name from retriever
+		strInfo = songInfo.get(songNumber).getArtist();	//Get song info from retriever
 		setMediaPlayerSource(strSource);		//Set resource to MediaPlayer
-		seek.setMax(songInfo.get(songNumber).Duration);	
+		
+		seek.setMax(songInfo.get(songNumber).getDuration());	
 		seek.setProgress(0);
+
+		setTextView();				//Set name and info
+	 	loadCover();			//Set cover
 		initTime();		//Reset the time
-	}
-	private boolean isSongGoingToChange(){
-		return (songInfo.get(songNumber).Duration <= mp.getCurrentPosition());
-	}
-	private String getSongName(){
-		return songInfo.get(songNumber).Name;
-	}
-	private String getSongInfo(){
-		return String.valueOf(songInfo.get(songNumber).Duration);	
-	}
-	private void setCurrentSeek(int position){
-		seek.setProgress(position);
-	}
-	private void setCurrentTime(int time){
-		date.setTime(time);
-		timer = timeFormat.format(date);
-		songTimeText.setText(timer);
-	}
-	private String getFormatTime(int time){
-		String t;
-		date.setTime(time);
-		t = timeFormat.format(date);
-		return t; 
 	}
 	private void initTime(){
 		date.setTime(0);
@@ -263,24 +246,28 @@ public class MusicPlayerView extends LinearLayout{
 		songNameText.setText("Song Name : " + strName);
 		songInfoText.setText("Song Artist : " + strInfo);
 	}
-	private void beforeSet(){
-		mp.reset();
- 		if(strSource == "NODATA"){
- 			strSource = songInfo.get(0).Path;
- 		}	
-	}	
 	private void setMediaPlayerSource(String source){
-		try {
-			mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
- 			mp.setDataSource(source);
- 			mp.prepare();
-        }catch(Exception e){
+		if(source.contains("http://") || source.contains("https://") || source.contains("files://")){
+			try {
+				mp.setDataSource(getContext() , Uri.parse(source));
+				mp.prepare();
+			}catch(Exception e){
 
-   		}
+			}
+		}
+		else{
+			try {
+				mp.setDataSource(source);
+				mp.prepare();
+			}catch(Exception e){
+
+			}
+		}
+		
 	}
-	private void setCover(byte[] data){
+	private void loadCover(){
 		if(data != null){
-			Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+			Bitmap bitmap = BitmapFactory.decodeByteArray(songInfo.get(songNumber).getGraphic(), 0, data.length);
 			coverImage.setImageBitmap(bitmap);
 		} 	
 		else {
@@ -290,17 +277,17 @@ public class MusicPlayerView extends LinearLayout{
 	private void setLastCurrentStatus(){
 		if(mp.isPlaying()){
 			playImageView.setImageResource(R.drawable.pause);
-			setCover(data);
+			loadCover();
 			handler.post(statusReflesher);
 		}
 		else {
-			setCover(data);
+			loadCover();
 		}	
 	}
 	private void FillList(ArrayList<Song> info){
 		adapter = new ArrayAdapter(getContext(),android.R.layout.simple_list_item_1);
 		for(Song inf : info){
-			adapter.add(inf.Name);
+			adapter.add(inf.getName());
 		}
 		songListView.setAdapter(adapter);
 		songCounts = info.size();
@@ -321,11 +308,9 @@ public class MusicPlayerView extends LinearLayout{
 		FillList(songInfo);
 	}
 	public void addStreamingSong(String url){
-   	//	songInfo.add(new Song("haha" , url , 10000L , 200000));
-   		FillList(songInfo);
-   		songCounts++;
+		//	songInfo.add(new Song("haha" , url , 10000L , 200000));
+			FillList(songInfo);
+			songCounts++;
 	}
 
 }
-
-

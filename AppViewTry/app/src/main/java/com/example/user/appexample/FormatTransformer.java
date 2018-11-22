@@ -50,7 +50,7 @@ class FormatTransformer {
                     String path = file.getAbsolutePath();
                     Long editDate = file.lastModified();
                     int duration = Integer.parseInt(retriever.extractMetadata(9));
-                    songs.add(new Song(name , artist , path , editDate , duration));             
+                    songs.add(new Song(retriever.getEmbeddedPicture() , name , artist , path , editDate , duration));             
                  }
             }
             return songs;
@@ -68,7 +68,7 @@ class FormatTransformer {
         String path = file.getAbsolutePath();
         Long editDate = file.lastModified();
         int duration = Integer.parseInt(retriever.extractMetadata(9));
-        Song info = new Song(name , artist , path , editDate , duration);
+        Song info = new Song(retriever.getEmbeddedPicture() , name , artist , path , editDate , duration);
         return info;
     }
     private Song getUrlInfo(String str){
@@ -79,11 +79,10 @@ class FormatTransformer {
         String path = file.getAbsolutePath();
         Long editDate = file.lastModified();
         int duration = Integer.parseInt(retriever.extractMetadata(9));
-        Song info = new Song(name , artist , path , editDate , duration);
+        Song info = new Song(retriever.getEmbeddedPicture() , name , artist , path , editDate , duration);
         return info;
     }
     private int extractDuration(String str){
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             player.setDataSource(str);
             player.prepare();

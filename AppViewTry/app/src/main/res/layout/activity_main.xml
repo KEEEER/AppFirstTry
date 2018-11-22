@@ -1,26 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
+<LinearLayout 
 	xmlns:android="http://schemas.android.com/apk/res/android"    
     xmlns:tools="http://schemas.android.com/tools"    
 	xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/RelativeLayout"    
     android:layout_width="match_parent"    
     android:layout_height="match_parent" 
+    android:orientation="vertical"
 	tools:context=".MainActivity">
-	<!--
+	
 
-	<com.example.user.appexample.MusicPlayerBackGroundView
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:id="@+id/BackGroundTest"/>
-	<com.example.user.appexample.MusicPlayerPlayPauseView
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:id="@+id/PlayPause"
-		android:onClick = "onClick"/-->
+
 	<com.example.user.appexample.MusicPlayerView
 		android:id = "@+id/music"
 		android:background = "@color/gray"
 		android:layout_width="match_parent"    
 		android:layout_height="500dp" />
-</RelativeLayout>
+	<!--
+	<TextView
+		android:text = "The song name is : abcd"
+        android:id="@+id/nameTextView"
+        android:layout_margin="10dp"
+        android:textSize = "20dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>	
+    <TextView
+		android:text = "The song name is : abcd"
+        android:id="@+id/nameTextView1"
+        android:layout_margin="10dp"
+        android:textSize = "20dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>	
+     <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/songListView1" /-->
+</LinearLayout>
